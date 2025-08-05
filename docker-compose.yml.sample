@@ -4,6 +4,8 @@ services:
     container_name: notfound404-endpoint
     image: caddy:2-alpine
     read_only: true
+    ports:
+      - 80:80
     volumes:
       - ./endpoint/Caddyfile:/etc/caddy/Caddyfile:ro
     restart: unless-stopped

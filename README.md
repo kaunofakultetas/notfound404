@@ -14,6 +14,7 @@ A fun 404 page for Vilnius university Kaunas faculty.
 
 2. **Start the application**
    ```bash
+   cp docker-compose.yml.sample docker-compose.yml
    ./runUpdateThisStack.sh
    ```
 
