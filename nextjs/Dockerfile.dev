@@ -1,0 +1,9 @@
+FROM node:21
+
+WORKDIR /app
+
+ENV PORT 443
+EXPOSE 443
+
+# CMD ["sleep", "infinity"]
+CMD ["npm", "run", "dev"]

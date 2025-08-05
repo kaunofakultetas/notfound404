@@ -1,0 +1,24 @@
+services:
+
+  notfound404-endpoint:
+    container_name: notfound404-endpoint
+    image: caddy:2-alpine
+    read_only: true
+    volumes:
+      - ./endpoint/Caddyfile:/etc/caddy/Caddyfile:ro
+    restart: unless-stopped
+
+
+  notfound404-nextjs:
+    container_name: notfound404-nextjs
+    image: notfound404-nextjs
+    user: 1000:1000
+    read_only: true
+    build:
+      context: ./nextjs
+      dockerfile: Dockerfile.prod        # Prod
+    #   dockerfile: Dockerfile.dev         # Dev
+    # volumes:                             # Dev
+    #   - ./nextjs/app:/app:ro             # Dev
+    #   - ./nextjs/app:/app                # Dev
+    restart: unless-stopped

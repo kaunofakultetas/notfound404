@@ -1,0 +1,23 @@
+{
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint", "prettier"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "next/core-web-vitals",
+    "prettier"
+  ],
+  "globals": {
+    "JSX": true
+  },
+  "rules": {
+    "no-unused-vars": "off",
+    "prettier/prettier": "error",
+    "import/no-anonymous-default-export": "off",
+    "react/display-name": "off",
+    "@typescript-eslint/no-explicit-any": "warn",  // Set to 'off' to completely disable
+    "react-hooks/exhaustive-deps": "warn",         // Adjust based on your preference
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@next/next/no-img-element": "off"
+  }
+}
