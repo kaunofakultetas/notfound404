@@ -11,9 +11,28 @@ services:
     restart: unless-stopped
 
 
+
+  # From Docker Hub
   notfound404-nextjs:
     container_name: notfound404-nextjs
     image: vuknf/notfound404-nextjs:20251106
     user: 1000:1000
     read_only: true
     restart: unless-stopped
+
+
+
+  # # For local development
+  # notfound404-nextjs:
+  #   container_name: notfound404-nextjs
+  #   image: notfound404-nextjs
+  #   user: 1000:1000
+  #   read_only: true
+  #   build:
+  #     context: ./nextjs
+  #     dockerfile: Dockerfile             # Prod
+  #   #   dockerfile: Dockerfile.dev         # Dev
+  #   # volumes:                             # Dev
+  #   #   - ./nextjs/app:/app:ro             # Dev
+  #   #   - ./nextjs/app:/app                # Dev
+  #   restart: unless-stopped
