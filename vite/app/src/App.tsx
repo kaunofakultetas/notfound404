@@ -1,11 +1,7 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome'
-import useInterval from '@use-it/interval'
-
-import { HeadComponent as Head } from '@/components/Head'
-import Link from 'next/link'
-import { Typography } from "@mui/material"
-
+import { Typography } from '@mui/material'
+import useInterval from './hooks/useInterval'
 
 type Apple = {
   x: number
@@ -17,7 +13,7 @@ type Velocity = {
   dy: number
 }
 
-export default function SnakeGame() {
+export default function App() {
   // Canvas Settings
   const canvasRef = useRef<HTMLCanvasElement | null>(null)
   const canvasWidth = 500
@@ -38,7 +34,7 @@ export default function SnakeGame() {
   const [score, setScore] = useState(0)
   const [snake, setSnake] = useState<{
     head: { x: number; y: number }
-    trail: Array<any>
+    trail: Array<{ x: number; y: number }>
   }>({
     head: { x: 12, y: 9 },
     trail: [],
@@ -53,7 +49,7 @@ export default function SnakeGame() {
   const clearCanvas = (ctx: CanvasRenderingContext2D) =>
     ctx.clearRect(-1, -1, canvasWidth + 2, canvasHeight + 2)
 
-  const generateApplePosition = (): Apple => {
+  const generateApplePosition = useCallback((): Apple => {
     const x = Math.floor(Math.random() * (canvasWidth / canvasGridSize))
     const y = Math.floor(Math.random() * (canvasHeight / canvasGridSize))
     // Check if random position interferes with snake head or trail
@@ -64,7 +60,7 @@ export default function SnakeGame() {
       return generateApplePosition()
     }
     return { x, y }
-  }
+  }, [snake.head.x, snake.head.y, snake.trail])
 
   // Initialise state and start countdown
   const startGame = () => {
@@ -83,7 +79,7 @@ export default function SnakeGame() {
   }
 
   // Reset state and check for highscore
-  const gameOver = () => {
+  const gameOver = useCallback(() => {
     if (score > highscore) {
       setHighscore(score)
       localStorage.setItem('highscore', score.toString())
@@ -93,7 +89,7 @@ export default function SnakeGame() {
     setRunning(false)
     setVelocity({ dx: 0, dy: 0 })
     setCountDown(4)
-  }
+  }, [score, highscore])
 
   const fillRect = (
     ctx: CanvasRenderingContext2D,
@@ -115,7 +111,7 @@ export default function SnakeGame() {
     ctx.strokeRect(x + 0.5, y + 0.5, w, h)
   }
 
-  const drawSnake = (ctx: CanvasRenderingContext2D) => {
+  const drawSnake = useCallback((ctx: CanvasRenderingContext2D) => {
     ctx.fillStyle = '#78003F'
     ctx.strokeStyle = '#003779'
 
@@ -152,11 +148,11 @@ export default function SnakeGame() {
         canvasGridSize
       )
     })
-  }
+  }, [snake.head.x, snake.head.y, snake.trail])
 
-  const drawApple = (ctx: CanvasRenderingContext2D) => {
-    ctx.fillStyle = '#E64164' // '#38C172' // '#F4CA64'
-    ctx.strokeStyle = '#881A1B' // '#187741' // '#8C6D1F
+  const drawApple = useCallback((ctx: CanvasRenderingContext2D) => {
+    ctx.fillStyle = '#E64164'
+    ctx.strokeStyle = '#881A1B'
 
     if (
       apple &&
@@ -179,10 +175,10 @@ export default function SnakeGame() {
         canvasGridSize
       )
     }
-  }
+  }, [apple])
 
   // Update snake.head, snake.trail and apple positions. Check for collisions.
-  const updateSnake = () => {
+  const updateSnake = useCallback(() => {
     // Check for collision with walls
     const nextHeadPosition = {
       x: snake.head.x + velocity.dx,
@@ -195,6 +191,7 @@ export default function SnakeGame() {
       nextHeadPosition.y >= canvasHeight / canvasGridSize
     ) {
       gameOver()
+      return
     }
 
     // Check for collision with apple
@@ -206,15 +203,17 @@ export default function SnakeGame() {
     const updatedSnakeTrail = [...snake.trail, { ...snake.head }]
     // Remove trail history beyond snake trail length (score + 2)
     while (updatedSnakeTrail.length > score + 2) updatedSnakeTrail.shift()
-    // Check for snake colliding with itsself
+    // Check for snake colliding with itself
     if (
       updatedSnakeTrail.some(
         (snakePart) =>
           snakePart.x === nextHeadPosition.x &&
           snakePart.y === nextHeadPosition.y
       )
-    )
+    ) {
       gameOver()
+      return
+    }
 
     // Update state
     setPreviousVelocity({ ...velocity })
@@ -222,7 +221,7 @@ export default function SnakeGame() {
       head: { ...nextHeadPosition },
       trail: [...updatedSnakeTrail],
     })
-  }
+  }, [snake, velocity, apple, score, gameOver, generateApplePosition])
 
   // Game Hook
   useEffect(() => {
@@ -234,7 +233,7 @@ export default function SnakeGame() {
       drawApple(ctx)
       drawSnake(ctx)
     }
-  }, [snake])
+  }, [snake, isLost, drawApple, drawSnake])
 
   // Game Update Interval
   useInterval(
@@ -285,43 +284,43 @@ export default function SnakeGame() {
           'd',
         ].includes(e.key)
       ) {
-        let velocity = { dx: 0, dy: 0 }
+        let newVelocity = { dx: 0, dy: 0 }
 
         switch (e.key) {
           case 'ArrowRight':
-            velocity = { dx: 1, dy: 0 }
+            newVelocity = { dx: 1, dy: 0 }
             break
           case 'ArrowLeft':
-            velocity = { dx: -1, dy: 0 }
+            newVelocity = { dx: -1, dy: 0 }
             break
           case 'ArrowDown':
-            velocity = { dx: 0, dy: 1 }
+            newVelocity = { dx: 0, dy: 1 }
             break
           case 'ArrowUp':
-            velocity = { dx: 0, dy: -1 }
+            newVelocity = { dx: 0, dy: -1 }
             break
           case 'd':
-            velocity = { dx: 1, dy: 0 }
+            newVelocity = { dx: 1, dy: 0 }
             break
           case 'a':
-            velocity = { dx: -1, dy: 0 }
+            newVelocity = { dx: -1, dy: 0 }
             break
           case 's':
-            velocity = { dx: 0, dy: 1 }
+            newVelocity = { dx: 0, dy: 1 }
             break
           case 'w':
-            velocity = { dx: 0, dy: -1 }
+            newVelocity = { dx: 0, dy: -1 }
             break
           default:
             console.error('Error with handleKeyDown')
         }
         if (
           !(
-            previousVelocity.dx + velocity.dx === 0 &&
-            previousVelocity.dy + velocity.dy === 0
+            previousVelocity.dx + newVelocity.dx === 0 &&
+            previousVelocity.dy + newVelocity.dy === 0
           )
         ) {
-          setVelocity(velocity)
+          setVelocity(newVelocity)
         }
       }
     }
@@ -334,55 +333,48 @@ export default function SnakeGame() {
 
   return (
     <>
-      <Head />
-
-
       {/* Navigation Bar */}
       <div style={{
         height: 75,
         backgroundColor: '#78003F',
+        display: 'flex',
         alignItems: 'center',
         paddingLeft: 20,
         color: 'white',
         fontWeight: 'bold'
       }}>
         <div style={{ display: 'flex', alignItems: 'center', width: '100%', justifyContent: 'flex-start' }}>
-          <Link href="https://knf.vu.lt" style={{ marginRight: 20, padding: 10, }}>
-            <img src={"/img/logo_knf.png"} alt="VU Kauno fakultetas" style={{ height: 75, cursor: 'pointer'  }} />
-          </Link>
+          <a href="https://knf.vu.lt" style={{ marginRight: 20, padding: 10 }}>
+            <img src="/img/logo_knf.png" alt="VU Kauno fakultetas" style={{ height: 75, cursor: 'pointer' }} />
+          </a>
         </div>
       </div>
 
-
-
       {/* Page Content */}
-      <div style={{minHeight: 'calc(100vh - 125px)'}}>
+      <div style={{ minHeight: 'calc(100vh - 125px)' }}>
 
         {/* Title */}
-        <div 
+        <div
           style={{
-            // height: '100%',
             width: '100%',
             margin: '50px 0 30px 0',
             display: 'inline-flex',
             justifyContent: 'center',
             alignItems: 'center',
-            // backgroundColor: 'red',
           }}
         >
-          <Typography sx={{color: "#78003F", fontSize: 30, fontWeight: 'bold', textAlign: 'center'}}>Panašu kad paklydote, ta proga<br/> pažaiskite gyvatėlę:</Typography>        
+          <Typography sx={{ color: "#78003F", fontSize: 30, fontWeight: 'bold', textAlign: 'center' }}>
+            Panašu kad paklydote, ta proga<br /> pažaiskite gyvatėlę:
+          </Typography>
         </div>
 
-      
-        <div 
+        <div
           style={{
-            // minHeight: '100vh',
             width: '100%',
             margin: 0,
             display: 'inline-flex',
             justifyContent: 'center',
             alignItems: 'center',
-            // backgroundColor: 'red',
           }}
         >
           <main>
@@ -434,15 +426,6 @@ export default function SnakeGame() {
           </main>
         </div>
       </div>
-      
-      
-      {/* <footer>
-        Copyright &copy; <a href="https://mueller.dev">Marc Müller</a> 2022
-        &nbsp;|&nbsp;{' '}
-        <a href="https://github.com/marcmll/next-snake">
-          <FontAwesomeIcon icon={['fab', 'github']} /> Github
-        </a>
-      </footer> */}
 
       {/* Footer */}
       <div style={{
@@ -453,12 +436,9 @@ export default function SnakeGame() {
         justifyContent: 'center',
         color: 'white',
         fontWeight: 'bold',
-        // marginTop: 50,
       }}>
         © {new Date().getFullYear()} Vilniaus universitetas Kauno Fakultetas
-      </div>  
-
-
+      </div>
     </>
   )
 }

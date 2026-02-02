@@ -1,8 +1,11 @@
-import type { AppProps } from 'next/app'
+import { StrictMode } from 'react'
+import { createRoot } from 'react-dom/client'
+import App from './App.tsx'
 
 // Import SCSS
-import '@/styles/main.scss'
-// Import initial FontAwesome Styles: https://github.com/FortAwesome/react-fontawesome/issues/134#issuecomment-476276516
+import './styles/main.scss'
+
+// Import initial FontAwesome Styles
 import '@fortawesome/fontawesome-svg-core/styles.css'
 
 // Import FontAwesome Icons
@@ -28,11 +31,8 @@ library.add(
 )
 config.autoAddCss = false
 
-export default function MyApp({ Component, pageProps }: AppProps) {
-  return (
-    <>
-      <Component {...pageProps} />
-    </>
-  );
-
-}
+createRoot(document.getElementById('root')!).render(
+  <StrictMode>
+    <App />
+  </StrictMode>,
+)

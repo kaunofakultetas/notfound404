@@ -1,6 +1,7 @@
 #!/bin/bash
+set -e
 
-CONTAINER_NAME=notfound404-nextjs
+CONTAINER_NAME=notfound404-vite
 
 TODAY=$(date +%Y%m%d)
 sudo docker login -u admin@knf.vu.lt
